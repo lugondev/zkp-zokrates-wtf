@@ -1,0 +1,32 @@
+{
+  "inputs": [
+    {
+      "name": "value",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "before",
+      "public": false,
+      "type": "field"
+    },
+    {
+      "name": "valuePublic",
+      "public": true,
+      "type": "field"
+    },
+    {
+      "name": "beforeHash",
+      "public": true,
+      "type": "field"
+    },
+    {
+      "name": "afterHash",
+      "public": true,
+      "type": "field"
+    }
+  ],
+  "output": {
+    "type": "field"
+  }
+}

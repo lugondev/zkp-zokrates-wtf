@@ -1,0 +1,14 @@
+import "hashes/sha256/512bitPacked" as sha256packed;
+const field ZERO = 0;
+
+def main(private field value, private field before, field valuePublic, field beforeHash, field afterHash) -> field {
+    field sendValue = valuePublic == ZERO ? value : valuePublic;
+
+	field[2] priBefore = beforeHash == 0 ? [0,0] : sha256packed([0, 0, 0, before]);
+	field[2] priAfter = sha256packed([0, 0, 0, before + sendValue]);
+    field result1 = (priBefore[0] == beforeHash && priAfter[0] == afterHash ) ? 1 : 0;
+    bool validValue = valuePublic == ZERO ? true : value == valuePublic;
+    field result = validValue ? result1 : 0;
+
+    return result;
+}

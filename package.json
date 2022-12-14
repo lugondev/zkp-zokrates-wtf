@@ -1,0 +1,16 @@
+{
+  "name": "zkp-zokrates-voc",
+  "version": "1.0.0",
+  "description": "Private payments",
+  "main": "index.js",
+  "scripts": {
+    "remixd": "remixd -s ./ -u https://remix.ethereum.org"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.7.1",
+    "ethereumjs-util": "^7.0.10",
+    "zokrates-js": "^1.1.4"
+  }
+}

@@ -1,0 +1,12 @@
+.idea
+**/artifacts
+**/artifacts/**.*
+.deps
+
+node_modules
+
+# ZOK compiled
+receiver/out**.*
+sender/out**.*
+receiver/out
+sender/out
