@@ -4,7 +4,7 @@ pragma solidity ^0.8.3;
 import "./ERC20.sol";
 import "./IVerifier.sol";
 
-contract ZkERC20 is ERC20 {
+contract ZkPrivacyPayment is ERC20 {
     mapping(address => uint256) public balanceHashes;
     mapping(address => uint256) public deposits;
 
@@ -12,8 +12,10 @@ contract ZkERC20 is ERC20 {
     IVerifier public verifierSender;
 
     constructor(address _receiver, address _sender)
-        ERC20("ZK Privacy Payment", "ZKP")
+    ERC20("ZK Privacy Payment", "ZKP")
     {
+        require(_receiver != address(0), "ZkPrivacyPayment: receiver is the zero address");
+        require(_sender != address(0), "ZkPrivacyPayment: sender is the zero address");
         verifierReceiver = IVerifier(_receiver);
         verifierSender = IVerifier(_sender);
     }
@@ -26,16 +28,16 @@ contract ZkERC20 is ERC20 {
     }
 
     function claim(IVerifier.Proof memory proofClaim, uint256 hashBalanceAfter)
-        public
+    public
     {
         require(deposits[msg.sender] > 0, "No deposit");
 
         uint256 hashBalanceBefore = balanceHashes[msg.sender];
         uint256[4] memory inputClaim = [
-            deposits[msg.sender],
-            hashBalanceBefore,
-            hashBalanceAfter,
-            1
+        deposits[msg.sender],
+        hashBalanceBefore,
+        hashBalanceAfter,
+        1
         ];
 
         bool claimProofIsCorrect = verifierReceiver.verifyTx(
@@ -55,10 +57,10 @@ contract ZkERC20 is ERC20 {
     ) public onlyOwner {
         uint256 hashReceiverBalanceBefore = balanceHashes[_to];
         uint256[4] memory inputReceiver = [
-            0,
-            hashReceiverBalanceBefore,
-            hashReceiverBalanceAfter,
-            1
+        0,
+        hashReceiverBalanceBefore,
+        hashReceiverBalanceAfter,
+        1
         ];
 
         bool receiverProofIsCorrect = verifierReceiver.verifyTx(
@@ -98,16 +100,16 @@ contract ZkERC20 is ERC20 {
         uint256 hashReceiverBalanceBefore = balanceHashes[_to];
 
         uint256[4] memory inputSender = [
-            0,
-            hashSenderBalanceBefore,
-            hashSenderBalanceAfter,
-            1
+        0,
+        hashSenderBalanceBefore,
+        hashSenderBalanceAfter,
+        1
         ];
         uint256[4] memory inputReceiver = [
-            0,
-            hashReceiverBalanceBefore,
-            hashReceiverBalanceAfter,
-            1
+        0,
+        hashReceiverBalanceBefore,
+        hashReceiverBalanceAfter,
+        1
         ];
 
         bool senderProofIsCorrect = verifierSender.verifyTx(

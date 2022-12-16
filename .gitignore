@@ -1,7 +1,10 @@
 .idea
 **/artifacts
 **/artifacts/**.*
+contracts/verifier-*.*
 .deps
+cache
+
 
 node_modules
 

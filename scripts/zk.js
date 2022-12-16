@@ -33,14 +33,14 @@ function getArtifactsReceiver(zokratesProvider) {
 }
 
 function getProofReceiver(currentValue, updateValue, isDeposit = false) {
-    if (updateValue <= 0) {
-        console.log("Invalid receiver's value")
-        return Promise.resolve({})
-    }
+    // if (updateValue <= 0) {
+    //     console.log("Invalid receiver's value")
+    //     return Promise.resolve({})
+    // }
     return initialize().then(async (zokratesProvider) => {
         const artifactsReceiver = getArtifactsReceiver(zokratesProvider)
         const [ computationCurrentValue, computationValueAfter ] = await Promise.all([ getComputationBalance(currentValue), getComputationBalance(currentValue + updateValue) ])
-        const computeWitnessArgs = [ `${updateValue}`, `${currentValue}`, isDeposit ? `${updateValue}` : "0", currentValue === 0 ? "0" : `${computationCurrentValue[0]}`, computationValueAfter[0] ]
+        const computeWitnessArgs = [ `${updateValue}`, `${currentValue}`, isDeposit ? `${updateValue}` : "0", currentValue == 0 ? "0" : `${computationCurrentValue[0]}`, computationValueAfter[0] ]
         const { witness } = zokratesProvider.computeWitness(artifactsReceiver, computeWitnessArgs);
         // generate proof
         const proof = zokratesProvider.generateProof(artifactsReceiver.program, witness, readReceiverProvingKey());
@@ -62,10 +62,10 @@ function getProofReceiver(currentValue, updateValue, isDeposit = false) {
 }
 
 function getProofSender(currentValue, updateValue, isWithdraw = false) {
-    if (updateValue >= currentValue || updateValue <= 0) {
-        console.log("Invalid sender's value")
-        return Promise.resolve({})
-    }
+    // if (updateValue >= currentValue || updateValue <= 0) {
+    //     console.log("Invalid sender's value")
+    //     return Promise.resolve({})
+    // }
     return initialize().then(async (zokratesProvider) => {
         const artifactsSender = getArtifactsSender(zokratesProvider)
         const [ computationCurrentValue, computationValueAfter ] = await Promise.all([ getComputationBalance(currentValue), getComputationBalance(currentValue - updateValue) ])
