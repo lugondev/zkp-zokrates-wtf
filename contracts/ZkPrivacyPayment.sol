@@ -6,7 +6,6 @@ import "./IVerifier.sol";
 
 contract ZkPrivacyPayment is ERC20 {
     mapping(address => uint256) public balanceHashes;
-    mapping(address => uint256) public deposits;
 
     IVerifier public verifierReceiver;
     IVerifier public verifierSender;
@@ -14,27 +13,33 @@ contract ZkPrivacyPayment is ERC20 {
     constructor(address _receiver, address _sender)
     ERC20("ZK Privacy Payment", "ZKP")
     {
-        require(_receiver != address(0), "ZkPrivacyPayment: receiver is the zero address");
-        require(_sender != address(0), "ZkPrivacyPayment: sender is the zero address");
+        require(
+            _receiver != address(0),
+            "ZkPrivacyPayment: receiver is the zero address"
+        );
+        require(
+            _sender != address(0),
+            "ZkPrivacyPayment: sender is the zero address"
+        );
         verifierReceiver = IVerifier(_receiver);
         verifierSender = IVerifier(_sender);
     }
 
     receive() external payable {}
 
-    function deposit() public payable {
-        deposits[msg.sender] += msg.value;
+    function deposit(IVerifier.Proof memory proofDeposit, uint256 hashBalanceAfter) public payable {
         _totalSupply += msg.value;
+        claim(msg.value, proofDeposit, hashBalanceAfter);
     }
 
-    function claim(IVerifier.Proof memory proofClaim, uint256 hashBalanceAfter)
-    public
+    function claim(uint256 amount, IVerifier.Proof memory proofClaim, uint256 hashBalanceAfter)
+    internal
     {
-        require(deposits[msg.sender] > 0, "No deposit");
+        require(amount > 0, "No deposit");
 
         uint256 hashBalanceBefore = balanceHashes[msg.sender];
         uint256[4] memory inputClaim = [
-        deposits[msg.sender],
+        amount,
         hashBalanceBefore,
         hashBalanceAfter,
         1
@@ -46,7 +51,6 @@ contract ZkPrivacyPayment is ERC20 {
         );
         require(claimProofIsCorrect, "Claimer's proof is not correct");
 
-        deposits[msg.sender] = 0;
         balanceHashes[msg.sender] = hashBalanceAfter;
     }
 
@@ -87,6 +91,7 @@ contract ZkPrivacyPayment is ERC20 {
 
         _totalSupply -= _amount;
         payable(msg.sender).transfer(_amount);
+        balanceHashes[msg.sender] = hashBalanceAfter;
     }
 
     function transferPrivacy(

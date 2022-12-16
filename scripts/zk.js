@@ -9,6 +9,9 @@ const {
 } = require("./util")
 
 const getComputationBalance = (balance) => initialize().then((zokratesProvider) => {
+    if (balance.toString().startsWith("0") && balance != 0) {
+        balance = balance.toString().substring(1)
+    }
     const source = `import "hashes/sha256/512bitPacked" as sha256packed;
         def main(private field a, private field b,private field c, private field d) -> field[2] {
     return sha256packed([a, b, c, d]);
@@ -49,7 +52,7 @@ function getProofReceiver(currentValue, updateValue, isDeposit = false) {
 
         if (isVerified) {
             return {
-                proof: proof.proof, inputs: proof.inputs, params: {
+                proofValues: Object.values(proof.proof), proof: proof.proof, inputs: proof.inputs, params: {
                     proof: JSON.stringify(Object.values(proof.proof)), hashAfter: computationValueAfter[0],
                 },
             }
@@ -75,7 +78,7 @@ function getProofSender(currentValue, updateValue, isWithdraw = false) {
 
         if (isVerified) {
             return {
-                proof: proof.proof, inputs: proof.inputs, params: {
+                proofValues: Object.values(proof.proof), proof: proof.proof, inputs: proof.inputs, params: {
                     proof: JSON.stringify(Object.values(proof.proof)), hashAfter: computationValueAfter[0],
                 },
             }

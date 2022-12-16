@@ -2,7 +2,7 @@ const chai = require("chai")
 const { expect } = require("chai")
 const chaiAsPromised = require("chai-as-promised")
 const { ethers } = require("hardhat")
-const { getProofReceiver } = require("../scripts/zk")
+const { getProofReceiver, getProofSender } = require("../scripts/zk")
 
 chai.use(chaiAsPromised)
 
@@ -35,19 +35,42 @@ describe("ZkPrivacyPayment", () => {
             expect(await zkPrivacyPayment.verifierReceiver()).to.equal(verifierReceiver.address);
         });
 
-        it('should deposit and claim', async function () {
-            const [ user1 ] = signers;
-            let amountDeposit = ethers.utils.parseEther("1");
-            await zkPrivacyPayment.deposit({ value: amountDeposit });
-            expect(await zkPrivacyPayment.deposits(user1.address)).to.equal(amountDeposit);
-
+        it('should deposit/withdraw and transfer', async function () {
+            const [ user1, user2 ] = signers;
+            let amountDeposit = ethers.utils.parseEther("10");
+            // user must generate proof before deposit
             let proofToClaim = await getProofReceiver(0, ethers.utils.formatUnits(amountDeposit, "wei"), true)
 
-            let hashAfterClaim = proofToClaim.params.hashAfter
-            await zkPrivacyPayment.claim(proofToClaim.proof, hashAfterClaim);
+            // deposit with proof generated
+            await zkPrivacyPayment.deposit(proofToClaim.proofValues, proofToClaim.params.hashAfter, { value: amountDeposit });
 
-            expect(await zkPrivacyPayment.deposits(user1.address)).to.equal(0);
-            expect(await zkPrivacyPayment.balanceHashes(user1.address)).to.equal(hashAfterClaim);
+            // checking
+            expect(await ethers.provider.getBalance(zkPrivacyPayment.address)).to.equal(amountDeposit);
+            expect(await zkPrivacyPayment.balanceHashes(user1.address)).to.equal(proofToClaim.params.hashAfter);
+
+            // transfer balance to user2
+            // this action requires both user1 and user2 to generate proof
+            let amountWillSent = ethers.utils.parseEther("3");
+            // user1 generate proof for sender
+            let proofToSender = await getProofSender(ethers.utils.formatUnits(amountDeposit, "wei"), ethers.utils.formatUnits(amountWillSent, "wei"))
+            // user2 generate proof for receiver: flag isDeposit only use for Deposit action
+            let proofToReceiver = await getProofReceiver(0, ethers.utils.formatUnits(amountWillSent, "wei"))
+
+            // transfer
+            await zkPrivacyPayment.transferPrivacy(user2.address, proofToSender.proofValues, proofToSender.params.hashAfter, proofToReceiver.proofValues, proofToReceiver.params.hashAfter);
+
+            // checking
+            expect(await zkPrivacyPayment.balanceHashes(user1.address)).to.equal(proofToSender.params.hashAfter);
+            expect(await zkPrivacyPayment.balanceHashes(user2.address)).to.equal(proofToReceiver.params.hashAfter);
+
+            let amountWillWithdrawal = ethers.utils.parseEther("3");
+            // withdraw. Note: need flag isWithdrawal = true to generate proof
+            let proofToWithdrawal = await getProofSender(amountWillSent, ethers.utils.formatUnits(amountWillWithdrawal, "wei"), true)
+            await zkPrivacyPayment.connect(user2).withdraw(amountWillWithdrawal, proofToWithdrawal.proofValues, proofToWithdrawal.params.hashAfter);
+
+            // checking
+            expect(await zkPrivacyPayment.balanceHashes(user2.address)).to.equal(proofToWithdrawal.params.hashAfter);
+            expect(await ethers.provider.getBalance(zkPrivacyPayment.address)).to.equal(amountDeposit.sub(amountWillWithdrawal));
         });
     });
 });
