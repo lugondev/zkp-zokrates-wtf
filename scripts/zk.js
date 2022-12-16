@@ -40,7 +40,7 @@ function getProofReceiver(currentValue, updateValue, isDeposit = false) {
     return initialize().then(async (zokratesProvider) => {
         const artifactsReceiver = getArtifactsReceiver(zokratesProvider)
         const [ computationCurrentValue, computationValueAfter ] = await Promise.all([ getComputationBalance(currentValue), getComputationBalance(currentValue + updateValue) ])
-        const computeWitnessArgs = [ `${updateValue}`, `${currentValue}`, isDeposit ? `${updateValue}` : "0", currentValue == 0 ? "0" : `${computationCurrentValue[0]}`, computationValueAfter[0] ]
+        const computeWitnessArgs = [ `${updateValue}`, `${currentValue}`, isDeposit ? `${updateValue}` : "0", !!currentValue ? computationCurrentValue[0] : "0", computationValueAfter[0] ]
         const { witness } = zokratesProvider.computeWitness(artifactsReceiver, computeWitnessArgs);
         // generate proof
         const proof = zokratesProvider.generateProof(artifactsReceiver.program, witness, readReceiverProvingKey());
@@ -49,11 +49,8 @@ function getProofReceiver(currentValue, updateValue, isDeposit = false) {
 
         if (isVerified) {
             return {
-                proof: proof.proof,
-                inputs: proof.inputs,
-                params: {
-                    proof: JSON.stringify(Object.values(proof.proof)),
-                    hashAfter: computationValueAfter[0],
+                proof: proof.proof, inputs: proof.inputs, params: {
+                    proof: JSON.stringify(Object.values(proof.proof)), hashAfter: computationValueAfter[0],
                 },
             }
         }
@@ -69,7 +66,7 @@ function getProofSender(currentValue, updateValue, isWithdraw = false) {
     return initialize().then(async (zokratesProvider) => {
         const artifactsSender = getArtifactsSender(zokratesProvider)
         const [ computationCurrentValue, computationValueAfter ] = await Promise.all([ getComputationBalance(currentValue), getComputationBalance(currentValue - updateValue) ])
-        const computeWitnessArgs = [ `${updateValue}`, `${currentValue}`, isWithdraw ? `${updateValue}` : "0", `${computationCurrentValue[0]}`, computationValueAfter[0] ]
+        const computeWitnessArgs = [ `${updateValue}`, `${currentValue}`, isWithdraw ? `${updateValue}` : "0", computationCurrentValue[0], computationValueAfter[0] ]
         const { witness } = zokratesProvider.computeWitness(artifactsSender, computeWitnessArgs)
         // generate proof
         const proof = zokratesProvider.generateProof(artifactsSender.program, witness, readSenderProvingKey());
@@ -78,11 +75,8 @@ function getProofSender(currentValue, updateValue, isWithdraw = false) {
 
         if (isVerified) {
             return {
-                proof: proof.proof,
-                inputs: proof.inputs,
-                params: {
-                    proof: JSON.stringify(Object.values(proof.proof)),
-                    hashAfter: computationValueAfter[0],
+                proof: proof.proof, inputs: proof.inputs, params: {
+                    proof: JSON.stringify(Object.values(proof.proof)), hashAfter: computationValueAfter[0],
                 },
             }
         }

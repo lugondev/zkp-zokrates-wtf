@@ -11,6 +11,7 @@ compile:
 export-verifier:
 	rm -rf  verifier-*.sol
 	zokrates export-verifier -o verifier-receiver.sol
+	sed -i '' 's/contract Verifier /contract VerifierReceiver /g' verifier-receiver.sol
 
 proof:
 	zokrates generate-proof

@@ -1,8 +1,8 @@
 SHELL=/bin/bash
 
-.PHONY: init compile receiver sender
+.PHONY: init compile receiver sender clean
 
-init: receiver sender
+init: clean receiver sender compile-sol
 
 receiver:
 	cd receiver && make
@@ -17,6 +17,7 @@ compile-zok:
 compile-sol:
 	cp receiver/verifier-receiver.sol contracts/verifier-receiver.sol
 	cp sender/verifier-sender.sol contracts/verifier-sender.sol
-	cd contracts && sed -i '' 's/contract Verifier /contract VerifierSender /g' verifier-sender.sol
-	cd contracts && sed -i '' 's/contract Verifier /contract VerifierReceiver /g' verifier-receiver.sol
 	npx hardhat compile
+
+clean:
+	rm -rf contracts/verifier-receiver.sol contracts/verifier-sender.sol

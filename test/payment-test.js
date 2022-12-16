@@ -30,6 +30,9 @@ describe("ZkPrivacyPayment", () => {
         it("deployed contract", async function () {
             expect(await zkPrivacyPayment.name()).to.equal("ZK Privacy Payment");
             expect(await zkPrivacyPayment.symbol()).to.equal("ZKP");
+
+            expect(await zkPrivacyPayment.verifierSender()).to.equal(verifierSender.address);
+            expect(await zkPrivacyPayment.verifierReceiver()).to.equal(verifierReceiver.address);
         });
 
         it('should deposit and claim', async function () {
@@ -39,6 +42,7 @@ describe("ZkPrivacyPayment", () => {
             expect(await zkPrivacyPayment.deposits(user1.address)).to.equal(amountDeposit);
 
             let proofToClaim = await getProofReceiver(0, ethers.utils.formatUnits(amountDeposit, "wei"), true)
+
             let hashAfterClaim = proofToClaim.params.hashAfter
             await zkPrivacyPayment.claim(proofToClaim.proof, hashAfterClaim);
 
